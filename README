@@ -1,18 +1,18 @@
-# DFPlayer Mini Fast
-## About this fork
+About this fork
+===============
 This version of bash can log all commands, including a timestamp,
 effective user and group, tty and $CWD, to a local logfile.
 Add an extra parameter to ./configure to enable this:
-```bash
+
 ./configure --enable-logfile=/var/log/.bashlog
-```
+
 
 Give this logfile the permission 622, and make it append-only:
-```bash
+
 touch /var/log/.bashlog
 chmod 622 /var/log/.bashlog
 chattr +a /var/log/.bashlog
-```
+
 
 Introduction
 ============
