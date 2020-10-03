@@ -34,6 +34,9 @@
 
 /* Configuration feature settings controllable by autoconf. */
 
+/* Define LOGFILE to point to a system-wide command log file. */
+#undef LOGFILE
+
 /* Define JOB_CONTROL if your operating system supports
    BSD-like job control. */
 #undef JOB_CONTROL

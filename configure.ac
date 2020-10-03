@@ -177,6 +177,7 @@ opt_progcomp=yes
 opt_separate_help=no
 opt_multibyte=yes
 opt_debugger=yes
+opt_logfile=no
 opt_single_longdoc_strings=yes
 opt_casemod_attrs=yes
 opt_casemod_expansions=yes
@@ -245,6 +246,7 @@ AC_ARG_ENABLE(single-help-strings, AC_HELP_STRING([--enable-single-help-strings]
 AC_ARG_ENABLE(strict-posix-default, AC_HELP_STRING([--enable-strict-posix-default], [configure bash to be posix-conformant by default]), opt_strict_posix=$enableval)
 AC_ARG_ENABLE(usg-echo-default, AC_HELP_STRING([--enable-usg-echo-default], [a synonym for --enable-xpg-echo-default]), opt_xpg_echo=$enableval)
 AC_ARG_ENABLE(xpg-echo-default, AC_HELP_STRING([--enable-xpg-echo-default], [make the echo builtin expand escape sequences by default]), opt_xpg_echo=$enableval)
+AC_ARG_ENABLE(logfile, AC_HELP_STRING([--enable-logfile], [log all commands to a system-wide log file]), opt_logfile=$enableval)
 
 dnl options that alter how bash is compiled and linked
 AC_ARG_ENABLE(mem-scramble, AC_HELP_STRING([--enable-mem-scramble], [scramble memory on calls to malloc and free]), opt_memscramble=$enableval)
@@ -366,6 +368,15 @@ if test "$opt_minimal_config" = yes; then
 	TESTSCRIPT=run-minimal
 else
 	TESTSCRIPT=run-all
+fi
+
+LOGFILE=
+if test "$opt_logfile" != no; then
+	if test "$opt_logfile" = "yes" ; then
+		AC_DEFINE(LOGFILE, "/var/run/bash.log")
+	else
+		AC_DEFINE_UNQUOTED(LOGFILE, "$opt_logfile")
+	fi
 fi
 
 HELPDIR= HELPDIRDEFINE= HELPINSTALL= HELPFILES_TARGET=

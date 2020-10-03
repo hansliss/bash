@@ -266,6 +266,48 @@ bash_history_inhibit_expansion (string, i)
 }
 #endif
 
+#ifdef LOGFILE
+void bash_log_command(char *line)
+{
+#include <sys/types.h>
+#include <pwd.h>
+#include <grp.h>
+  FILE *_logfile=fopen(LOGFILE,"a");
+  time_t _tnow=time(NULL);
+  struct tm *_now=localtime(&_tnow);
+  uid_t _uid=geteuid();
+  gid_t _gid=getegid();
+  struct passwd *_user=getpwuid(_uid);
+  struct group *_group=getgrgid(_gid);
+  char *_username=_user->pw_name;
+  char *_groupname=_group->gr_name;
+  char *_ttyname=ttyname(0);
+  char _uidbuf[16];
+  char _gidbuf[16];
+  char _cwdbuf[256];
+  sprintf(_uidbuf, "%d", _uid);
+  sprintf(_gidbuf, "%d", _gid);
+  if (_logfile)
+    {
+      fprintf(_logfile,"%04d%02d%02d	%02d:%02d:%02d	%s	%s	%s	%s	%s\n",
+	      _now->tm_year+1900,
+	      _now->tm_mon+1,
+	      _now->tm_mday,
+	      _now->tm_hour,
+	      _now->tm_min,
+	      _now->tm_sec,
+	      _username?_username:_uidbuf,
+	      _groupname?_groupname:_gidbuf,
+	      _ttyname?_ttyname:"unknown",
+	      getcwd(_cwdbuf, sizeof(_cwdbuf)),
+	      line?line:"<unparseable>");
+      fclose(_logfile);
+    }
+}
+#else
+#define bash_log_command(a)
+#endif
+
 void
 bash_initialize_history ()
 {
@@ -628,6 +670,8 @@ pre_process_line (line, print_changes, addit)
 
   if (addit && remember_on_history && *return_value)
     maybe_add_history (return_value);
+
+  bash_log_command(return_value);
 
 #if 0
   if (expanded == 0)
