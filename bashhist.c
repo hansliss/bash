@@ -55,6 +55,12 @@
 #include <glob/glob.h>
 #include <glob/strmatch.h>
 
+#if defined (LOGFILE)
+#  include <sys/types.h>
+#  include <pwd.h>
+#  include <grp.h>
+#endif
+
 #if defined (READLINE)
 #  include "bashline.h"
 extern int rl_done, rl_dispatching;	/* should really include readline.h */
@@ -266,29 +272,26 @@ bash_history_inhibit_expansion (string, i)
 }
 #endif
 
-#ifdef LOGFILE
+#if defined (LOGFILE)
 void bash_log_command(char *line)
 {
-#include <sys/types.h>
-#include <pwd.h>
-#include <grp.h>
   FILE *_logfile=fopen(LOGFILE,"a");
-  time_t _tnow=time(NULL);
-  struct tm *_now=localtime(&_tnow);
-  uid_t _uid=geteuid();
-  gid_t _gid=getegid();
-  struct passwd *_user=getpwuid(_uid);
-  struct group *_group=getgrgid(_gid);
-  char *_username=_user->pw_name;
-  char *_groupname=_group->gr_name;
-  char *_ttyname=ttyname(0);
-  char _uidbuf[16];
-  char _gidbuf[16];
-  char _cwdbuf[256];
-  sprintf(_uidbuf, "%d", _uid);
-  sprintf(_gidbuf, "%d", _gid);
   if (_logfile)
     {
+      time_t _tnow = time(NULL);
+      struct tm *_now = localtime(&_tnow);
+      uid_t _uid = geteuid();
+      gid_t _gid = getegid();
+      struct passwd *_user = getpwuid(_uid);
+      char *_username = _user?(_user->pw_name):NULL;
+      struct group *_group = getgrgid(_gid);
+      char *_groupname = _group?(_group->gr_name):NULL;
+      char *_ttyname = ttyname(0);
+      char _uidbuf[16];
+      char _gidbuf[16];
+      char _cwdbuf[256];
+      sprintf(_uidbuf, "%d", _uid);
+      sprintf(_gidbuf, "%d", _gid);
       fprintf(_logfile,"%04d%02d%02d	%02d:%02d:%02d	%s	%s	%s	%s	%s\n",
 	      _now->tm_year+1900,
 	      _now->tm_mon+1,
@@ -299,13 +302,11 @@ void bash_log_command(char *line)
 	      _username?_username:_uidbuf,
 	      _groupname?_groupname:_gidbuf,
 	      _ttyname?_ttyname:"unknown",
-	      getcwd(_cwdbuf, sizeof(_cwdbuf)),
-	      line?line:"<unparseable>");
+	      getcwd(_cwdbuf, sizeof(_cwdbuf))?_cwdbuf:"(unknown)",
+	      line?line:"(unknown)");
       fclose(_logfile);
     }
 }
-#else
-#define bash_log_command(a)
 #endif
 
 void
@@ -671,7 +672,9 @@ pre_process_line (line, print_changes, addit)
   if (addit && remember_on_history && *return_value)
     maybe_add_history (return_value);
 
+#if defined (LOGFILE)
   bash_log_command(return_value);
+#endif
 
 #if 0
   if (expanded == 0)
